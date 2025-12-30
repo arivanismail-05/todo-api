@@ -12,7 +12,9 @@ class TodoController extends Controller
      */
     public function index()
     {
-        return response()->json(Todo::all());
+
+    return response()->json(Todo::orderBy('created_at', 'desc')->get());
+
     }
 
     /**
@@ -57,7 +59,7 @@ class TodoController extends Controller
     public function update(Request $request, Todo $todo)
     {
         $request->validate([
-            'title' => 'required|string|max:255'
+            'title' => 'sometimes|required|string|max:255'
         ]);
         $todo->update($request->all());
         return response()->json($todo);

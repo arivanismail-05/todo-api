@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>To Do List</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-[#b0c4de35] text-[#191970]">
+  <div class="max-w-6xl mx-auto px-8 py-10">
+
+    <!-- Header (clean + aligned) -->
+    <div class="flex items-center justify-between text-[#191970a5] text-sm font-medium">
+      <div>Friday 13 October</div>
+      <div>12:40 p.m.</div>
+    </div>
+
+    <h1 class="mt-3 text-3xl font-extrabold">To-do List</h1>
+
+    <!-- Add task (simple) -->
+    <div class="mt-8 space-y-3">
+      <div class="flex gap-3">
+        <div class="flex-1 bg-[#b0c4de95] border border-[#19197020] rounded px-4 py-3">
+          <input
+            type="text"
+            placeholder="Add new task..."
+            class="w-full bg-transparent outline-none text-lg font-semibold placeholder:text-[#19197080]"
+            id="taskTitle"
+          />
+        </div>
+
+        <button
+          class="w-32 bg-[#b0c4de95] border border-[#19197020] rounded px-4 py-3 font-bold hover:bg-[#a9bcd595] active:scale-[0.99] transition"
+          id="addBtn"       
+        >
+          Add
+        </button>
+      </div>
+
+      <div class="bg-[#b0c4de95] border border-[#19197020] rounded px-4 py-3">
+        <input
+          type="text"
+          placeholder="Description (optional)..."
+          class="w-full bg-transparent outline-none text-[#191970a5] placeholder:text-[#19197080]"
+          id="taskDescription"
+        />
+      </div>
+    </div>
+
+    <hr class="mt-10">
+    <!-- Tasks -->
+    <div class="mt-10 space-y-3" id="tasksList">
+
+
+    </div>
+  </div>
+  <script>
+  const API_URL = '/api/todos';
+
+  async function loadTodos() {
+    try {
+      const response = await fetch(API_URL);
+      const todos = await response.json();
+      displayTodos(todos);
+    } catch (error) {
+      console.error('Error loading todos:', error);
+    }
+  }
+
+  function displayTodos(todos) {
+    const tasksList = document.getElementById('tasksList');
+    tasksList.innerHTML = todos.map(todo => `
+      <div class="flex gap-3 ${todo.completed ? 'opacity-80' : ''}">
+        <div class="flex-1 bg-[#b0c4de95] border border-[#19197020] rounded px-4 py-4">
+          <div class="flex items-start gap-3">
+            <input type="checkbox" ${todo.completed ? 'checked' : ''} 
+                   class="mt-1 accent-[#191970]" 
+                   onchange="toggleTodo(${todo.id}, this.checked)">
+            <div>
+              <div class="text-lg font-bold leading-tight ${todo.completed ? 'line-through' : ''}">${todo.title}</div>
+              <div class="text-sm text-[#191970a5] mt-1 ${todo.completed ? 'line-through' : ''} line-clamp-1">
+                ${todo.description || 'No description'}
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="w-40 bg-[#b0c4de95] border border-[#19197020] rounded px-4 py-4 flex items-center justify-between">
+          <div class="text-right">
+            <div class="font-bold">${new Date(todo.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</div>
+            <div class="text-sm text-[#191970a5] font-semibold">${new Date(todo.created_at).toLocaleDateString()}</div>
+          </div>
+          <button onclick="deleteTodo(${todo.id})" 
+                  class="px-3 py-2 rounded border border-[#19197020] bg-white/20 font-bold text-sm hover:bg-red-600/50 active:scale-[0.99] transition"
+                  title="Delete">✕</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function toggleTodo(id, completed) {
+  try {
+    await fetch(`${API_URL}/${id}`, {  
+      method: 'PUT',
+      headers: { 
+        'Content-Type': 'application/json',
+        'Accept': 'application/json' 
+       },
+      body: JSON.stringify({ completed })
+    });
+    loadTodos();
+  } catch (error) {
+    console.error('Error toggling todo:', error);
+  }
+}
+  async function deleteTodo(id) {
+    if (!confirm('Delete this todo?')) return;
+    try {
+      await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+      loadTodos();
+    } catch (error) {
+      console.error('Error deleting todo:', error);
+    }
+  }
+
+  document.getElementById('addBtn').addEventListener('click', async function() {
+    const title = document.getElementById('taskTitle').value.trim();
+    const description = document.getElementById('taskDescription').value.trim();
+    
+    if (!title) return;
+    
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json', 
+          'Accept': 'application/json' 
+        },
+        body: JSON.stringify({ title, description })
+      });
+      
+      if (response.ok) {
+        document.getElementById('taskTitle').value = '';
+        document.getElementById('taskDescription').value = '';
+        loadTodos();
+      }
+    } catch (error) {
+      console.error('Error adding todo:', error);
+    }
+  });
+
+  // 6. START APP
+  loadTodos();
+</script>
+
+</body>
+</html>
