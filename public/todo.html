@@ -11,9 +11,8 @@
   <div class="max-w-6xl mx-auto px-8 py-10">
 
     <!-- Header (clean + aligned) -->
-    <div class="flex items-center justify-between text-[#191970a5] text-sm font-medium">
-      <div>Friday 13 October</div>
-      <div>12:40 p.m.</div>
+    <div class="flex items-center justify-between text-[#191970a5] text-sm font-medium" id="dynamicHeader">
+      
     </div>
 
     <h1 class="mt-3 text-3xl font-extrabold">To-do List</h1>
@@ -63,6 +62,7 @@
       const response = await fetch(API_URL);
       const todos = await response.json();
       displayTodos(todos);
+      updateHeader();
     } catch (error) {
       console.error('Error loading todos:', error);
     }
@@ -149,7 +149,24 @@
     }
   });
 
-  // 6. START APP
+function updateHeader() {
+  const now = new Date();
+  const dayName = now.toLocaleDateString('en-US', { weekday: 'long' });
+  const dayNum = now.getDate();
+  const monthName = now.toLocaleDateString('en-US', { month: 'long' });
+  const time = now.toLocaleTimeString('en-US', { 
+    hour: 'numeric', 
+    minute: '2-digit',
+    hour12: true 
+  });
+  
+  document.getElementById('dynamicHeader').innerHTML = `
+    <div>${dayName} ${dayNum} ${monthName}</div>
+    <div>${time}</div>
+  `;
+}
+
+
   loadTodos();
 </script>
 
